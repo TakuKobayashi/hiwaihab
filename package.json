@@ -1,0 +1,21 @@
+{
+  "name": "hiwaihub",
+  "version": "0.0.1",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "TakuKobayashi",
+  "private": true,
+  "dependencies": {
+    "@line/bot-sdk":"*",
+    "nodemon":"*"
+  },
+  "keywords": [
+    "node",
+    "websocket",
+    "express",
+    "socket.io"
+  ],
+  "license": "MIT"
+}
