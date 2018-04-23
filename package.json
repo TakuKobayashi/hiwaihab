@@ -11,7 +11,12 @@
     "@line/bot-sdk": "*",
     "nodemon": "*",
     "crypto": "*",
-    "pornsearch": "*"
+    "pornsearch": "*",
+    "aws-sdk": "*",
+    "request": "*",
+    "cheerio": "*",
+    "addressable": "*",
+    "uuid": "*"
   },
   "license": "MIT"
 }

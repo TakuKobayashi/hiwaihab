@@ -1,3 +1,8 @@
+var AWS = require('aws-sdk');
+var dynamo = new AWS.DynamoDB({
+    region: 'ap-northeast-1'
+});
+
 var line = require('@line/bot-sdk');
 var crypto = require('crypto');
 var client = new line.Client({channelAccessToken: process.env.ACCESSTOKEN});
