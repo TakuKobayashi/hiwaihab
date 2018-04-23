@@ -2,6 +2,13 @@ var line = require('@line/bot-sdk');
 var crypto = require('crypto');
 var client = new line.Client({channelAccessToken: process.env.ACCESSTOKEN});
 
+var Pornsearch = require('pornsearch');
+
+var search = function(keyword, callback){
+  var searcher = new Pornsearch(keyword);
+  searcher.videos().then(videos => callback(videos));
+};
+
 exports.handler = function (event, context) {
   var signature = crypto.createHmac('sha256', process.env.CHANNELSECRET).update(event.body).digest('base64');
   var checkHeader = (event.headers || {})['X-Line-Signature'];
@@ -10,7 +17,7 @@ exports.handler = function (event, context) {
     if (body.events[0].replyToken === '00000000000000000000000000000000') { //接続確認エラー回避
       var lambdaResponse = {
         statusCode: 200,
-        headers: { "X-Line-Status" : "OK"},
+        headers: { "X-Line-Status": "OK"},
         body: '{"result":"connect check"}'
       };
       context.succeed(lambdaResponse);

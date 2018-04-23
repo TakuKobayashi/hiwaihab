@@ -8,9 +8,10 @@
   "author": "TakuKobayashi",
   "private": true,
   "dependencies": {
-    "@line/bot-sdk":"*",
-    "nodemon":"*",
-    "crypto":"*"
+    "@line/bot-sdk": "*",
+    "nodemon": "*",
+    "crypto": "*",
+    "pornsearch": "*"
   },
   "license": "MIT"
 }
