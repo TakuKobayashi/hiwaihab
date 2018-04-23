@@ -9,13 +9,8 @@
   "private": true,
   "dependencies": {
     "@line/bot-sdk":"*",
-    "nodemon":"*"
+    "nodemon":"*",
+    "crypto":"*"
   },
-  "keywords": [
-    "node",
-    "websocket",
-    "express",
-    "socket.io"
-  ],
   "license": "MIT"
 }
