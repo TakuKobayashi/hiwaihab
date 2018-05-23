@@ -9,14 +9,7 @@
   "private": true,
   "dependencies": {
     "@line/bot-sdk": "*",
-    "nodemon": "*",
-    "crypto": "*",
-    "pornsearch": "*",
-    "aws-sdk": "*",
-    "request": "*",
-    "cheerio": "*",
-    "addressable": "*",
-    "uuid": "*"
+    "pornsearch": "*"
   },
   "license": "MIT"
 }
