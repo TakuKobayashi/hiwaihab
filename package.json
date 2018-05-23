@@ -9,7 +9,8 @@
   "private": true,
   "dependencies": {
     "@line/bot-sdk": "*",
-    "pornsearch": "*"
+    "pornsearch": "*",
+    "aws-sdk": "*"
   },
   "license": "MIT"
 }

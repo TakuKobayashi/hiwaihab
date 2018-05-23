@@ -1,7 +1,8 @@
-//var AWS = require('aws-sdk');
-//var dynamo = new AWS.DynamoDB({
-//    region: 'ap-northeast-1'
-//});
+var AWS = require('aws-sdk');
+AWS.config.update({
+  region: 'ap-northeast-1',
+});
+var dynamo = new AWS.DynamoDB.DocumentClient();
 
 var line = require('@line/bot-sdk');
 
@@ -13,17 +14,33 @@ var search = function(keyword, callback){
 };
 
 exports.handler = function (event, context) {
-  var client = new line.Client({channelAccessToken: process.env.ACCESSTOKEN});
-  var message = {
-    type: "text",
-    text: JSON.stringify(event)
+  var params = {
+    TableName: "AppearWordDynamo",
+    Key:{
+      word: 'Itbites',
+      part: 'n'
+    }
   };
-  client.replyMessage(event.events[0].replyToken, message).then((response) => {
-    var lambdaResponse = {
-      statusCode: 200,
-      headers: { "X-Line-Status" : "OK"},
-      body: '{"result":"completed"}'
+
+  dynamo.get(params, function(err, data) {
+    var messageObj = {}
+    if (err) {
+      messageObj = err;
+    } else {
+      messageObj = data;
+    }
+    var client = new line.Client({channelAccessToken: process.env.ACCESSTOKEN});
+    var message = {
+      type: "text",
+      text: JSON.stringify(Object.assign(event, messageObj))
     };
-    context.succeed(lambdaResponse);
-  }).catch((err) => console.log(err));
+    client.replyMessage(event.events[0].replyToken, message).then((response) => {
+      var lambdaResponse = {
+        statusCode: 200,
+        headers: { "X-Line-Status" : "OK"},
+        body: '{"result":"completed"}'
+      };
+      context.succeed(lambdaResponse);
+    }).catch((err) => console.log(err));
+  });
 };
