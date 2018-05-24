@@ -4,16 +4,10 @@ AWS.config.update({
 });
 var dynamo = new AWS.DynamoDB.DocumentClient();
 
-var line = require('@line/bot-sdk');
-
-var Pornsearch = require('pornsearch');
-
-var search = function(keyword, callback){
-  var searcher = new Pornsearch(keyword);
-  searcher.videos().then(videos => callback(videos));
-};
+var linebot = require(__dirname + '/linebot.js');
 
 exports.handler = function (event, context) {
+/*
   var params = {
     TableName: "AppearWordDynamo",
     Key:{
@@ -21,26 +15,24 @@ exports.handler = function (event, context) {
       part: 'n'
     }
   };
-
-  dynamo.get(params, function(err, data) {
-    var messageObj = {}
-    if (err) {
-      messageObj = err;
-    } else {
-      messageObj = data;
+*/
+//  dynamo.get(params, function(err, data) {
+  var lineClient = linebot.getLineClient(process.env.ACCESSTOKEN);
+  event.events.forEach(function(lineMessage) {
+    if(lineMessage.type == "message"){
+      linebot.generateReplyMessageObject(lineMessage.message, function(messageObj){
+        console.log(messageObj);
+        console.log(lineMessage.replyToken);
+        lineClient.replyMessage(lineMessage.replyToken, messageObj).then((response) => {
+          var lambdaResponse = {
+            statusCode: 200,
+            headers: { "X-Line-Status": "OK"},
+            body: JSON.stringify({"result": "completed"})
+          };
+          context.succeed(lambdaResponse);
+        }).catch((err) => console.log(err));
+      });
     }
-    var client = new line.Client({channelAccessToken: process.env.ACCESSTOKEN});
-    var message = {
-      type: "text",
-      text: JSON.stringify(Object.assign(event, messageObj))
-    };
-    client.replyMessage(event.events[0].replyToken, message).then((response) => {
-      var lambdaResponse = {
-        statusCode: 200,
-        headers: { "X-Line-Status" : "OK"},
-        body: '{"result":"completed"}'
-      };
-      context.succeed(lambdaResponse);
-    }).catch((err) => console.log(err));
   });
+//  });
 };
