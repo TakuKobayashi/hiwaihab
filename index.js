@@ -17,12 +17,15 @@ exports.handler = function (event, context) {
   };
 */
 //  dynamo.get(params, function(err, data) {
-  var lineClient = linebot.getLineClient(process.env.ACCESSTOKEN);
+  console.log(JSON.stringify(event));
+  var lineClient = linebot.initLineClient(process.env.ACCESSTOKEN);
   event.events.forEach(function(lineMessage) {
-    if(lineMessage.type == "message"){
+    if(lineMessage.type == "follow"){
+      linebot.follow(lineMessage.source.userId, lineMessage.timestamp);
+    }else if(lineMessage.type == "unfollow"){
+      linebot.unfollow(lineMessage.source.userId, lineMessage.timestamp);
+    }else if(lineMessage.type == "message"){
       linebot.generateReplyMessageObject(lineMessage.message, function(messageObj){
-        console.log(messageObj);
-        console.log(lineMessage.replyToken);
         lineClient.replyMessage(lineMessage.replyToken, messageObj).then((response) => {
           var lambdaResponse = {
             statusCode: 200,
