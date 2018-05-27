@@ -33,7 +33,9 @@ exports.handler = function (event, context) {
             body: JSON.stringify({"result": "completed"})
           };
           context.succeed(lambdaResponse);
-        }).catch((err) => console.log(err));
+        }).catch(function(err){
+          console.log(err);
+        });
       });
     }
   });

@@ -10,7 +10,9 @@
   "dependencies": {
     "@line/bot-sdk": "*",
     "pornsearch": "*",
-    "aws-sdk": "*"
+    "aws-sdk": "*",
+    "underscore": "*",
+    "underscore.string": "*"
   },
   "license": "MIT"
 }

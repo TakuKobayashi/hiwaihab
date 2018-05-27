@@ -5,8 +5,10 @@ AWS.config.update({
   region: 'ap-northeast-1',
 });
 var dynamo = new AWS.DynamoDB.DocumentClient();
+var underscore = require('underscore');
+var underscoreString = require("underscore.string");
 
-var ApplicationName = "hiwaihub_linebot";
+var applicationName = "hiwaihub_linebot";
 
 var Pornsearch = require('pornsearch');
 
@@ -17,9 +19,9 @@ var userStatusEnum = {
   unfollow: 1
 }
 
-var searchPornhab = function(keyword, callback) {
+var searchPornhubPromise = function(keyword) {
   var searcher = new Pornsearch(keyword);
-  searcher.videos().then(videos => callback(videos));
+  return searcher.videos();
 }
 
 var searchDynamodbPromise = function(tablename, filterObject){
@@ -103,7 +105,7 @@ exports.follow = function(user_id, timestamp) {
       var updateObject = {
         updated_at: timestamp
       }
-      updateObject[ApplicationName] = userStatusEnum.follow
+      updateObject[applicationName] = userStatusEnum.follow
       return updateDynamodbPromise("users", {user_id: user_id}, updateObject);
     }else{
       var insertObject = {
@@ -113,7 +115,7 @@ exports.follow = function(user_id, timestamp) {
         description: userProfileObj.statusMessage,
         updated_at: timestamp
       }
-      insertObject[ApplicationName] = userStatusEnum.follow
+      insertObject[applicationName] = userStatusEnum.follow
       return createDynamodbPromise("users", insertObject);
     }
   });
@@ -126,7 +128,7 @@ exports.unfollow = function(user_id, timestamp) {
       var updateObject = {
         updated_at: timestamp
       }
-      updateObject[ApplicationName] = userStatusEnum.unfollow
+      updateObject[applicationName] = userStatusEnum.unfollow
       return updateDynamodbPromise("users", {user_id: user_id}, updateObject);
     }
   });
@@ -139,10 +141,34 @@ exports.initLineClient = function(accessToken) {
 
 exports.generateReplyMessageObject = function(lineMessageObj, callback) {
   if(lineMessageObj.type == "text"){
-    searchPornhab(lineMessageObj.text, function(searchResult){
+    var pornhubPromise = searchPornhubPromise(lineMessageObj.text);
+    pornhubPromise.then(function(searchResult){
+      var resultSamples = underscore.sample(searchResult, 10);
       var messageObj = {
-        type: "text",
-        text: JSON.stringify(searchResult[0])
+        type: "template",
+        altText: lineMessageObj.text + "の検索結果",
+        template: {
+          type: "carousel",
+          columns: underscore.map(resultSamples, function(video){
+            return {
+              thumbnailImageUrl: video.thumb,
+              title: underscoreString(video.title).prune(37).value(),
+              text: "再生時間:" + video.duration.toString(),
+              defaultAction: {
+                type: "uri",
+                label: "動画を見る",
+                uri: video.url
+              },
+              actions: [
+                {
+                  type: "uri",
+                  label: "動画を見る",
+                  uri: video.url
+                }
+              ]
+            }
+          })
+        }
       };
       callback(messageObj);
     });
