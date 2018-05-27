@@ -12,8 +12,6 @@ var applicationName = "hiwaihub_linebot";
 
 var Pornsearch = require('pornsearch');
 
-var lineClient;
-
 var userStatusEnum = {
   follow: 0,
   unfollow: 1,
@@ -91,13 +89,13 @@ var createDynamodbPromise = function(tablename, putObject){
   });
 };
 
-var getUserProfilePromise = function(user_id){
+var getUserProfile = function(user_id){
   return lineClient.getProfile(user_id);
 }
 
 exports.follow = function(user_id, timestamp) {
   var userProfileObj = {userId: user_id};
-  var profilePromise = getUserProfilePromise(user_id);
+  var profilePromise = getUserProfile(user_id);
   profilePromise.then(function(profile){
     userProfileObj = Object.assign(userProfileObj, profile);
     return searchDynamodbPromise("users", {user_id: user_id});
@@ -120,6 +118,7 @@ exports.follow = function(user_id, timestamp) {
       return createDynamodbPromise("users", insertObject);
     }
   });
+  return profilePromise;
 }
 
 exports.unfollow = function(user_id, timestamp) {
@@ -133,14 +132,14 @@ exports.unfollow = function(user_id, timestamp) {
       return updateDynamodbPromise("users", {user_id: user_id}, updateObject);
     }
   });
+  return usersPromise;
 }
 
 exports.initLineClient = function(accessToken) {
-  lineClient = new line.Client({channelAccessToken: accessToken});
-  return lineClient;
+  return new line.Client({channelAccessToken: accessToken});
 }
 
-exports.generateReplyMessageObjectPromise = function(lineMessageObj) {
+exports.generateReplyMessageObject = function(lineMessageObj) {
   if(lineMessageObj.message.type == "text"){
     var resultSamples = []
     var pornhubPromise = searchPornhubPromise(lineMessageObj.text);
@@ -188,5 +187,7 @@ exports.generateReplyMessageObjectPromise = function(lineMessageObj) {
         resolve(messageObj);
       });
     });
+    return pornhubPromise;
   }
+  return null;
 }

@@ -11,11 +11,12 @@ exports.handler = function (event, context) {
   var lineClient = linebot.initLineClient(process.env.ACCESSTOKEN);
   event.events.forEach(function(lineMessage) {
     if(lineMessage.type == "follow"){
-      linebot.follow(lineMessage.source.userId, lineMessage.timestamp);
+      var followedPromise = linebot.follow(lineMessage.source.userId, lineMessage.timestamp);
     }else if(lineMessage.type == "unfollow"){
       linebot.unfollow(lineMessage.source.userId, lineMessage.timestamp);
     }else if(lineMessage.type == "message"){
-      var replyMessageObjectPromise = linebot.generateReplyMessageObjectPromise(lineMessage);
+      var replyMessageObjectPromise = linebot.generateReplyMessageObject(lineMessage);
+      if(!replyMessageObjectPromise) return;
       replyMessageObjectPromise.then(function(messageObj){
         return lineClient.replyMessage(lineMessage.replyToken, messageObj);
       })
