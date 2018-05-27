@@ -25,7 +25,7 @@ var searchPornhubPromise = function(keyword) {
   return searcher.videos();
 }
 
-var searchDynamodbPromise = function(tablename, filterObject){
+var getDynamodbPromise = function(tablename, filterObject){
   return new Promise((resolve, reject) => {
     var params = {
       TableName: tablename,
@@ -95,11 +95,23 @@ var getUserProfile = function(user_id){
   return lineClient.getProfile(user_id);
 }
 
+exports.checkConfirmed = function(user_id) {
+  return getDynamodbPromise("users", {user_id: user_id}).then(function(userData){
+    return new Promise((resolve, reject) => {
+      if(userData.Item && userData.Item[applicationName] == userStatusEnum.confirmed){
+        resolve(userData);
+      }else{
+        reject(userData);
+      }
+    });
+  });
+};
+
 exports.follow = function(user_id, timestamp) {
   var userProfileObj = {userId: user_id};
   return getUserProfile(user_id).then(function(profile){
     userProfileObj = Object.assign(userProfileObj, profile);
-    return searchDynamodbPromise("users", {user_id: user_id});
+    return getDynamodbPromise("users", {user_id: user_id});
   }).then(function(userData){
     if(userData.Item){
       var updateObject = {
@@ -122,12 +134,24 @@ exports.follow = function(user_id, timestamp) {
 }
 
 exports.unfollow = function(user_id, timestamp) {
-  return searchDynamodbPromise("users", {user_id: user_id}).then(function(userData){
+  return getDynamodbPromise("users", {user_id: user_id}).then(function(userData){
     if(userData.Item){
       var updateObject = {
         updated_at: timestamp
       }
       updateObject[applicationName] = userStatusEnum.unfollow
+      return updateDynamodbPromise("users", {user_id: user_id}, updateObject);
+    }
+  });
+}
+
+exports.updateConfirmState = function(user_id, timestamp) {
+  return getDynamodbPromise("users", {user_id: user_id}).then(function(userData){
+    if(userData.Item){
+      var updateObject = {
+        updated_at: timestamp
+      }
+      updateObject[applicationName] = userStatusEnum.confirmed
       return updateDynamodbPromise("users", {user_id: user_id}, updateObject);
     }
   });
@@ -200,12 +224,12 @@ exports.generateConfirmMessage = function(){
           {
             type: "postback",
             label: "はい",
-            data: "confirmed=1",
+            data: JSON.stringify({confirmed: true}),
           },
           {
             type: "postback",
             label: "いいえ",
-            data: "confirmed=1",
+            data: JSON.stringify({confirmed: false}),
           }
         ]
       }
