@@ -18,6 +18,8 @@ var userStatusEnum = {
   confirmed: 2,
 }
 
+var lineClient;
+
 var searchPornhubPromise = function(keyword) {
   var searcher = new Pornsearch(keyword);
   return searcher.videos();
@@ -95,8 +97,7 @@ var getUserProfile = function(user_id){
 
 exports.follow = function(user_id, timestamp) {
   var userProfileObj = {userId: user_id};
-  var profilePromise = getUserProfile(user_id);
-  profilePromise.then(function(profile){
+  return getUserProfile(user_id).then(function(profile){
     userProfileObj = Object.assign(userProfileObj, profile);
     return searchDynamodbPromise("users", {user_id: user_id});
   }).then(function(userData){
@@ -118,12 +119,10 @@ exports.follow = function(user_id, timestamp) {
       return createDynamodbPromise("users", insertObject);
     }
   });
-  return profilePromise;
 }
 
 exports.unfollow = function(user_id, timestamp) {
-  var usersPromise = searchDynamodbPromise("users", {user_id: user_id});
-  usersPromise.then(function(userData){
+  return searchDynamodbPromise("users", {user_id: user_id}).then(function(userData){
     if(userData.Item){
       var updateObject = {
         updated_at: timestamp
@@ -132,18 +131,17 @@ exports.unfollow = function(user_id, timestamp) {
       return updateDynamodbPromise("users", {user_id: user_id}, updateObject);
     }
   });
-  return usersPromise;
 }
 
 exports.initLineClient = function(accessToken) {
-  return new line.Client({channelAccessToken: accessToken});
+  lineClient = new line.Client({channelAccessToken: accessToken});
+  return lineClient;
 }
 
-exports.generateReplyMessageObject = function(lineMessageObj) {
+exports.searchVideoAndGenerateReplyMessageObject = function(lineMessageObj) {
   if(lineMessageObj.message.type == "text"){
     var resultSamples = []
-    var pornhubPromise = searchPornhubPromise(lineMessageObj.text);
-    pornhubPromise.then(function(searchResult){
+    return searchPornhubPromise(lineMessageObj.text).then(function(searchResult){
       resultSamples = underscore.sample(searchResult, 10);
       var insertObject = {
         message_id: lineMessageObj.message.id,
@@ -155,8 +153,7 @@ exports.generateReplyMessageObject = function(lineMessageObj) {
         created_at: lineMessageObj.timestamp
       }
       return createDynamodbPromise("bot_messages", insertObject);
-    });
-    pornhubPromise.then(function(searchResult){
+    }).then(function(searchResult){
       return new Promise((resolve, reject) => {
         var messageObj = {
           type: "template",
@@ -187,7 +184,32 @@ exports.generateReplyMessageObject = function(lineMessageObj) {
         resolve(messageObj);
       });
     });
-    return pornhubPromise;
   }
   return null;
+}
+
+exports.generateConfirmMessage = function(){
+  return new Promise((resolve, reject) => {
+    var confirmObject =     {
+      type: "template",
+      altText: "this is a confirm template",
+      template: {
+        type: "confirm",
+        text: "Hiwaihubへようこそ!!\nこのコンテンツはアダルト動画を検索してみることができるものです!!\nあなたは18歳以上ですか?",
+        actions: [
+          {
+            type: "postback",
+            label: "はい",
+            data: "confirmed=1",
+          },
+          {
+            type: "postback",
+            label: "いいえ",
+            data: "confirmed=1",
+          }
+        ]
+      }
+    }
+    resolve(confirmObject);
+  });
 }

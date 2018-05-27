@@ -11,16 +11,23 @@ exports.handler = function (event, context) {
   var lineClient = linebot.initLineClient(process.env.ACCESSTOKEN);
   event.events.forEach(function(lineMessage) {
     if(lineMessage.type == "follow"){
-      var followedPromise = linebot.follow(lineMessage.source.userId, lineMessage.timestamp);
+      var followPromise = linebot.follow(lineMessage.source.userId, lineMessage.timestamp);
+      followPromise.then(function(userData){
+        return linebot.generateConfirmMessage();
+      }).then(function(confirmObj){
+        return lineClient.replyMessage(lineMessage.replyToken, confirmObj);
+      });
     }else if(lineMessage.type == "unfollow"){
       linebot.unfollow(lineMessage.source.userId, lineMessage.timestamp);
     }else if(lineMessage.type == "message"){
-      var replyMessageObjectPromise = linebot.generateReplyMessageObject(lineMessage);
-      if(!replyMessageObjectPromise) return;
+      var replyMessageObjectPromise = linebot.searchVideoAndGenerateReplyMessageObject(lineMessage);
+      console.log("aaaaaa");
+      console.log(replyMessageObjectPromise);
       replyMessageObjectPromise.then(function(messageObj){
+        console.log("bbbbbbb");
+        console.log(JSON.stringify(messageObj));
         return lineClient.replyMessage(lineMessage.replyToken, messageObj);
-      })
-      replyMessageObjectPromise.then((response) => {
+      }).then((response) => {
         var lambdaResponse = {
           statusCode: 200,
           headers: { "X-Line-Status": "OK"},
