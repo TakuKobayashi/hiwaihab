@@ -15,17 +15,19 @@ exports.handler = function (event, context) {
     }else if(lineMessage.type == "unfollow"){
       linebot.unfollow(lineMessage.source.userId, lineMessage.timestamp);
     }else if(lineMessage.type == "message"){
-      linebot.generateReplyMessageObject(lineMessage.message, function(messageObj){
-        lineClient.replyMessage(lineMessage.replyToken, messageObj).then((response) => {
-          var lambdaResponse = {
-            statusCode: 200,
-            headers: { "X-Line-Status": "OK"},
-            body: JSON.stringify({"result": "completed"})
-          };
-          context.succeed(lambdaResponse);
-        }).catch(function(err){
-          console.log(err);
-        });
+      var replyMessageObjectPromise = linebot.generateReplyMessageObjectPromise(lineMessage);
+      replyMessageObjectPromise.then(function(messageObj){
+        return lineClient.replyMessage(lineMessage.replyToken, messageObj);
+      })
+      replyMessageObjectPromise.then((response) => {
+        var lambdaResponse = {
+          statusCode: 200,
+          headers: { "X-Line-Status": "OK"},
+          body: JSON.stringify({"result": "completed"})
+        };
+        context.succeed(lambdaResponse);
+      }).catch(function(err){
+        console.log(err);
       });
     }
   });

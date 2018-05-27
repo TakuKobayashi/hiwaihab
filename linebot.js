@@ -16,7 +16,8 @@ var lineClient;
 
 var userStatusEnum = {
   follow: 0,
-  unfollow: 1
+  unfollow: 1,
+  confirmed: 2,
 }
 
 var searchPornhubPromise = function(keyword) {
@@ -139,38 +140,53 @@ exports.initLineClient = function(accessToken) {
   return lineClient;
 }
 
-exports.generateReplyMessageObject = function(lineMessageObj, callback) {
-  if(lineMessageObj.type == "text"){
+exports.generateReplyMessageObjectPromise = function(lineMessageObj) {
+  if(lineMessageObj.message.type == "text"){
+    var resultSamples = []
     var pornhubPromise = searchPornhubPromise(lineMessageObj.text);
     pornhubPromise.then(function(searchResult){
-      var resultSamples = underscore.sample(searchResult, 10);
-      var messageObj = {
-        type: "template",
-        altText: lineMessageObj.text + "の検索結果",
-        template: {
-          type: "carousel",
-          columns: underscore.map(resultSamples, function(video){
-            return {
-              thumbnailImageUrl: video.thumb,
-              title: underscoreString(video.title).prune(37).value(),
-              text: "再生時間:" + video.duration.toString(),
-              defaultAction: {
-                type: "uri",
-                label: "動画を見る",
-                uri: video.url
-              },
-              actions: [
-                {
+      resultSamples = underscore.sample(searchResult, 10);
+      var insertObject = {
+        message_id: lineMessageObj.message.id,
+        user_id: lineMessageObj.source.userId,
+        reply_token: lineMessageObj.replyToken,
+        input_text: lineMessageObj.message.text,
+        applicationName: applicationName,
+        response_object: resultSamples,
+        created_at: lineMessageObj.timestamp
+      }
+      return createDynamodbPromise("bot_messages", insertObject);
+    });
+    pornhubPromise.then(function(searchResult){
+      return new Promise((resolve, reject) => {
+        var messageObj = {
+          type: "template",
+          altText: lineMessageObj.text + "の検索結果",
+          template: {
+            type: "carousel",
+            columns: underscore.map(resultSamples, function(video){
+              return {
+                thumbnailImageUrl: video.thumb,
+                title: underscoreString(video.title).prune(37).value(),
+                text: "再生時間:" + video.duration.toString(),
+                defaultAction: {
                   type: "uri",
                   label: "動画を見る",
                   uri: video.url
-                }
-              ]
-            }
-          })
-        }
-      };
-      callback(messageObj);
+                },
+                actions: [
+                  {
+                    type: "uri",
+                    label: "動画を見る",
+                    uri: video.url
+                  }
+                ]
+              }
+            })
+          }
+        };
+        resolve(messageObj);
+      });
     });
   }
 }
