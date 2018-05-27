@@ -7,16 +7,6 @@ var dynamo = new AWS.DynamoDB.DocumentClient();
 var linebot = require(__dirname + '/linebot.js');
 
 exports.handler = function (event, context) {
-/*
-  var params = {
-    TableName: "AppearWordDynamo",
-    Key:{
-      word: 'Itbites',
-      part: 'n'
-    }
-  };
-*/
-//  dynamo.get(params, function(err, data) {
   console.log(JSON.stringify(event));
   var lineClient = linebot.initLineClient(process.env.ACCESSTOKEN);
   event.events.forEach(function(lineMessage) {
@@ -39,5 +29,4 @@ exports.handler = function (event, context) {
       });
     }
   });
-//  });
 };
