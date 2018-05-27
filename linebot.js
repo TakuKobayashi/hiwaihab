@@ -6,6 +6,8 @@ AWS.config.update({
 });
 var dynamo = new AWS.DynamoDB.DocumentClient();
 
+var ApplicationName = "hiwaihub_linebot";
+
 var Pornsearch = require('pornsearch');
 
 var lineClient;
@@ -99,19 +101,19 @@ exports.follow = function(user_id, timestamp) {
   }).then(function(userData){
     if(userData.Item){
       var updateObject = {
-        updated_at: timestamp,
-        user_state: userStatusEnum.follow
+        updated_at: timestamp
       }
+      updateObject[ApplicationName] = userStatusEnum.follow
       return updateDynamodbPromise("users", {user_id: user_id}, updateObject);
     }else{
       var insertObject = {
         user_id: userProfileObj.userId,
-        user_state: userStatusEnum.follow,
         name: userProfileObj.displayName,
         icon_url: userProfileObj.pictureUrl,
         description: userProfileObj.statusMessage,
         updated_at: timestamp
       }
+      insertObject[ApplicationName] = userStatusEnum.follow
       return createDynamodbPromise("users", insertObject);
     }
   });
@@ -122,9 +124,9 @@ exports.unfollow = function(user_id, timestamp) {
   usersPromise.then(function(userData){
     if(userData.Item){
       var updateObject = {
-        updated_at: timestamp,
-        user_state: userStatusEnum.unfollow
+        updated_at: timestamp
       }
+      updateObject[ApplicationName] = userStatusEnum.unfollow
       return updateDynamodbPromise("users", {user_id: user_id}, updateObject);
     }
   });
