@@ -165,7 +165,7 @@ exports.initLineClient = function(accessToken) {
 exports.searchVideoAndGenerateReplyMessageObject = function(lineMessageObj) {
   if(lineMessageObj.message.type == "text"){
     var resultSamples = []
-    return searchPornhubPromise(lineMessageObj.text).then(function(searchResult){
+    return searchPornhubPromise(lineMessageObj.message.text).then(function(searchResult){
       resultSamples = underscore.sample(searchResult, 10);
       var insertObject = {
         message_id: lineMessageObj.message.id,

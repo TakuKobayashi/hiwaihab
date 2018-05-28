@@ -1,9 +1,3 @@
-var AWS = require('aws-sdk');
-AWS.config.update({
-  region: 'ap-northeast-1',
-});
-var dynamo = new AWS.DynamoDB.DocumentClient();
-
 var linebot = require(__dirname + '/linebot.js');
 
 var callLambdaResponse = function(promise, context){
