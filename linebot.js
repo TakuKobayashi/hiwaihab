@@ -165,6 +165,72 @@ var LineBot = function(accessToken){
       resolve(confirmObject);
     });
   }
+
+  this.createRichmenu = function(){
+    return this.lineClient.createRichMenu({
+      size:{
+        width:2500,
+        height:843
+      },
+      selected: true,
+      name: "HiwaiHubController",
+      chatBarText: "HiwaiHubコマンダー",
+      areas:[
+        {
+          bounds:{
+            x:0,
+            y:0,
+            width:2500,
+            height:443
+          },
+          action:{
+            type: "uri",
+            label: "本家PronHubに行く",
+            uri: "https://www.pornhub.com/"
+          }
+        },
+        {
+          bounds:{
+            x:0,
+            y:443,
+            width:833,
+            height:400
+          },
+          action:{
+            type: "uri",
+            label: "仮想通貨Vergeを購入する",
+            uri: "https://www.binance.com/?ref=16721878"
+          }
+        },
+        {
+          bounds:{
+            x:834,
+            y:443,
+            width:833,
+            height:400
+          },
+          action:{
+            type: "uri",
+            label: "日本円でBitCoinを購入する",
+            uri: "https://zaif.jp?ac=erbr37656b"
+          }
+        },
+        {
+          bounds:{
+            x:1667,
+            y:443,
+            width:833,
+            height:400
+          },
+          action:{
+            type: "message",
+            label: "Vergeで寄付する",
+            text: "D6NkyiFL9rvqu8bjaSaqwD9gr1cwQRbiu6"
+          }
+        }
+      ]
+    });
+  }
 }
 
 module.exports = LineBot;
