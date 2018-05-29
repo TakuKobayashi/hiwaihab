@@ -166,6 +166,14 @@ var LineBot = function(accessToken){
     });
   }
 
+  this.linkRichMenu = function(userId, richMenuId){
+    return this.lineClient.linkRichMenuToUser(userId, richMenuId)
+  }
+
+  this.unlinkRichMenu = function(userId){
+    return this.lineClient.unlinkRichMenuFromUser(userId)
+  }
+
   this.createRichmenu = function(){
     return this.lineClient.createRichMenu({
       size:{
@@ -174,7 +182,7 @@ var LineBot = function(accessToken){
       },
       selected: true,
       name: "HiwaiHubController",
-      chatBarText: "HiwaiHubコマンダー",
+      chatBarText: "オプション",
       areas:[
         {
           bounds:{
@@ -212,7 +220,7 @@ var LineBot = function(accessToken){
           action:{
             type: "uri",
             label: "日本円でBitCoinを購入する",
-            uri: "https://zaif.jp?ac=erbr37656b"
+            uri: "https://bitflyer.jp?bf=3mrjfos1"
           }
         },
         {
@@ -229,7 +237,35 @@ var LineBot = function(accessToken){
           }
         }
       ]
+    }).then(function(richmenuId){
+      console.log(richmenuId);
+    }).catch(function(err){
+      console.log(err);
+      console.log(JSON.stringify(err.originalError.response.data));
     });
+  }
+
+  this.setRichmenuImage = function(richMenuId, filePath){
+    var fs = require('fs');
+    return this.lineClient.setRichMenuImage(richMenuId, fs.readFileSync(filePath));
+  }
+
+  this.deleteRichMenu = function(richMenuId){
+    return this.lineClient.deleteRichMenu(richMenuId);
+  };
+
+  this.getRichMenuList = function(){
+    return this.lineClient.getRichMenuList();
+  }
+
+  this.isHttpUrl = function(url){
+    var pattern = new RegExp('^(https?:\/\/)?' + // protocol
+     '((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|' + // domain name
+     '((\d{1,3}\.){3}\d{1,3}))' + // OR ip (v4) address
+     '(\:\d+)?(\/[-a-z\d%_.~+]*)*' + // port and path
+     '(\?[;&a-z\d%_.~+=-]*)?' + // query string
+     '(\#[-a-z\d_]*)?$','i'); // fragment locater
+     return pattern.test(url)
   }
 }
 

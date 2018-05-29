@@ -28,15 +28,19 @@ exports.handler = function (event, context) {
       });
       callLambdaResponse(promise, context);
     }else if(lineMessage.type == "unfollow"){
-      linebot.unfollow(lineMessage.source.userId, lineMessage.timestamp);
+      callLambdaResponse(linebot.unfollow(lineMessage.source.userId, lineMessage.timestamp).then(function(){
+        //return linebot.unlinkRichMenu(lineMessage.source.userId, process.env.RICHMENUID1);
+      }), context);
     }else if(lineMessage.type == "postback"){
       var receiveData = JSON.parse(lineMessage.postback.data);
       if(receiveData.confirmed){
-        linebot.updateConfirmState(lineMessage.source.userId, lineMessage.timestamp);
+        callLambdaResponse(linebot.updateConfirmState(lineMessage.source.userId, lineMessage.timestamp).then(function(){
+          //return linebot.linkRichMenu(lineMessage.source.userId, process.env.RICHMENUID1)
+        }), context);
       }else{
-        linebot.generateConfirmMessage().then(function(confirmObj){
+        callLambdaResponse(linebot.generateConfirmMessage().then(function(confirmObj){
           return lineClient.replyMessage(lineMessage.replyToken, confirmObj);
-        });
+        }), context);
       }
     }else if(lineMessage.type == "message"){
       var replyMessageObjectPromise = linebot.checkConfirmed(lineMessage.source.userId).then(function(userData){
