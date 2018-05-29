@@ -10,6 +10,7 @@ var callLambdaResponse = function(promise, context){
     context.succeed(lambdaResponse);
   }).catch(function(err){
     console.log(err);
+    console.log(JSON.stringify(err.originalError.response.data));
   });
 }
 
