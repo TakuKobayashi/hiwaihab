@@ -97,10 +97,11 @@ var LineBot = function(accessToken){
         resultSamples = underscore.sample(searchResult, 10);
         var insertObject = {
           message_id: lineMessageObj.message.id,
+          message_type: lineMessageObj.message.type,
           user_id: lineMessageObj.source.userId,
           reply_token: lineMessageObj.replyToken,
           input_text: lineMessageObj.message.text,
-          applicationName: applicationName,
+          application_name: applicationName,
           response_object: resultSamples,
           created_at: lineMessageObj.timestamp
         }
@@ -142,7 +143,7 @@ var LineBot = function(accessToken){
 
   this.generateConfirmMessage = function(){
     return new Promise((resolve, reject) => {
-      var confirmObject =     {
+      var confirmObject = {
         type: "template",
         altText: "this is a confirm template",
         template: {
